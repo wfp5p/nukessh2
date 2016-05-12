@@ -9,38 +9,37 @@ import (
 
 func main() {
 	config := tail.Config{Follow: true, ReOpen: true, Poll: true,
-		Logger: tail.DiscardingLogger}
-	// if flag.NFlag() < 1 {
-	// 	fmt.Println("need one or more files as arguments")
-	// 	os.Exit(1)
-	// }
+		Logger: tail.DiscardingLogger,
+		Location: &tail.SeekInfo{0, os.SEEK_END}}
 
-	done := make(chan bool)
-	files := os.Args[1:]
-	for _, filename := range files {
-		// fmt.Println(filename)
-		go tailFile(filename, config, done)
-	}
+	line := make(chan string, 5)
 
-	for _, _ = range files {
-	 	<-done
+	go tailFile("/tmp/bozo", config, line)
+	lookForLine(line)
+
+}
+
+func lookForLine(line <-chan string) {
+	for s := range line {
+		fmt.Println(s)
 	}
 }
 
-func tailFile(filename string, config tail.Config, done chan bool) {
-	defer func() { done <- true }()
+func tailFile(filename string, config tail.Config, out chan<- string) {
+	defer func() { close(out) }()
+
 	t, err := tail.TailFile(filename, config)
 	if err != nil {
-		fmt.Println("this was err from tail")
 		fmt.Println(err)
 		return
 	}
+
 	for line := range t.Lines {
-		fmt.Println(line.Text)
+		out <- line.Text
 	}
+
 	err = t.Wait()
 	if err != nil {
-		fmt.Println("this was err from wait")
 		fmt.Println(err)
 	}
 }
