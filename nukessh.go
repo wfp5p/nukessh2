@@ -104,7 +104,7 @@ func main() {
 }
 
 func LineMatch(line string) (login SshLogin, found bool) {
-	if m :=  rx.FindAllStringSubmatch(line, -1); m != nil {
+	if m := rx.FindAllStringSubmatch(line, -1); m != nil {
 		found = true
 		login.IPaddr = m[0][2]
 		login.User = m[0][1]
@@ -123,7 +123,7 @@ func lookForLine(line <-chan string) {
 
 	for {
 		select {
-		case <- ticker.C:
+		case <-ticker.C:
 			fmt.Println("time for an expire run")
 			for k, v := range u {
 				fmt.Printf("* ip: %v %v\n", k, v)
@@ -135,7 +135,7 @@ func lookForLine(line <-chan string) {
 			}
 			// expire all the roots
 			r = make(map[string]int)
-		case s := <- line:
+		case s := <-line:
 			if l, ok := LineMatch(s); ok {
 				fmt.Printf("ip: %v user: %v\n", l.IPaddr, l.User)
 
