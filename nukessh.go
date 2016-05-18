@@ -17,10 +17,68 @@ type SshLogin struct {
 
 var (
 	rx *regexp.Regexp
+	badusers = make(map[string]bool)
 )
 
 func init() {
 	rx = regexp.MustCompile(`sshd\[\d+\]:\s+Failed password for (?:invalid\s+user\s+)?(.*) from (\d+\.\d+\.\d+\.\d+)\s+port`)
+
+	for _, u := range []string{
+		"admin",
+		"administrator",
+		"anaconda",
+		"apache",
+		"bin",
+		"bugzilla",
+		"cacti",
+		"cactiuser",
+		"cthulhu",
+		"deploy",
+		"dff",
+		"eggdrop",
+		"fskjl32l32",
+		"ftp",
+		"ftpuser",
+		"git",
+		"gopher",
+		"guest",
+		"hadoop",
+		"hastur",
+		"itc",
+		"john",
+		"log",
+		"mail",
+		"marine",
+		"mcgrath",
+		"munin",
+		"mysql",
+		"nagios",
+		"navy",
+		"news",
+		"nobody",
+		"oracle",
+		"postfix",
+		"postgres",
+		"r00t",
+		"samba",
+		"sfdjlkfkjd",
+		"squid",
+		"staff",
+		"support",
+		"system",
+		"teamspeak",
+		"test",
+		"testuser",
+		"tomcat",
+		"user",
+		"viridian",
+		"webmaster",
+		"www",
+		"zabbix",
+		"zhangyan",
+	} {
+		badusers[u] = true
+	}
 }
 
 func main() {
