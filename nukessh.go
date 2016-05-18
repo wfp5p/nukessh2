@@ -15,6 +15,11 @@ type SshLogin struct {
 	User string
 }
 
+const (
+	expirecycle = time.Hour
+	decay = 10
+)
+
 var (
 	rx *regexp.Regexp
 	badusers = make(map[string]bool)
@@ -112,24 +117,40 @@ func LineMatch(line string) (login SshLogin, found bool) {
 }
 
 func lookForLine(line <-chan string) {
-	ticker := time.NewTicker(60 * time.Minute)
-	x := make(map[string]int)
+	ticker := time.NewTicker(expirecycle)
+	u := make(map[string]int)
+	r := make(map[string]int)
 
 	for {
 		select {
 		case <- ticker.C:
 			fmt.Println("time for an expire run")
-			for k, v := range x {
+			for k, v := range u {
 				fmt.Printf("* ip: %v %v\n", k, v)
+				if v <= decay {
+					delete(u, k)
+					continue
+				}
+				u[k] -= decay
 			}
+			// expire all the roots
+			r = make(map[string]int)
 		case s := <- line:
 			if l, ok := LineMatch(s); ok {
 				fmt.Printf("ip: %v user: %v\n", l.IPaddr, l.User)
-				x[l.IPaddr]++
+
+				if badusers[l.User] {
+					fmt.Println("   is a baduser, instablock")
+				}
+
+				if l.User == "root" {
+					r["root"]++
+				}
+
+				u[l.IPaddr]++
 			}
 		}
 	}
-
 }
 
 func tailFile(filename string, config tail.Config, out chan<- string) {
