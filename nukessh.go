@@ -2,17 +2,32 @@ package main
 
 import (
 	"fmt"
-	"os"
-	"path/filepath"
+	"log"
 	"regexp"
 	"time"
 
-	"github.com/hpcloud/tail"
+	"github.com/coreos/go-systemd/sdjournal"
 )
 
 type SshLogin struct {
 	IPaddr string
 	User string
+}
+
+type LineInfo chan string
+
+func (w LineInfo) Write(p []byte) (int, error) {
+	if len(p) < 1 {
+		return 0, nil
+	}
+
+	w <- string(p)
+	return len(p), nil
+}
+
+func (w LineInfo) Close() error {
+	close(w)
+	return nil
 }
 
 const (
@@ -26,7 +41,11 @@ var (
 )
 
 func init() {
-	rx = regexp.MustCompile(`sshd\[\d+\]:\s+Failed password for (?:invalid\s+user\s+)?(.*) from (\d+\.\d+\.\d+\.\d+)\s+port`)
+	// This is the /var/log/secure version of the regexp
+	// rx = regexp.MustCompile(`sshd\[\d+\]:\s+Failed password for (?:invalid\s+user\s+)?(.*) from (\d+\.\d+\.\d+\.\d+)\s+port`)
+
+	// This is the systemd version of the regexp
+	rx = regexp.MustCompile(`MESSAGE=Failed password for (?:invalid\s+user\s+)?(.*) from (\d+\.\d+\.\d+\.\d+)\s+port`)
 
 	for _, u := range []string{
 		"admin",
@@ -92,18 +111,10 @@ func init() {
 }
 
 func main() {
-	if len(os.Args) == 1 {
-        fmt.Printf("usage: %s\n", filepath.Base(os.Args[0]))
-        os.Exit(1)
-    }
+	var line LineInfo
+	line = make(chan string, 5)
 
-	tailconfig := tail.Config{Follow: true, ReOpen: true, Poll: true,
-//		Logger: tail.DiscardingLogger,
-		Location: &tail.SeekInfo{0, os.SEEK_END}}
-
-	line := make(chan string, 5)
-
-	go tailFile(os.Args[1], tailconfig, line)
+	go watch_sdjournal(&line)
 	lookForLine(line)
 
 }
@@ -158,21 +169,28 @@ func lookForLine(line <-chan string) {
 	}
 }
 
-func tailFile(filename string, config tail.Config, out chan<- string) {
-	defer func() { close(out) }()
+func watch_sdjournal(out *LineInfo) {
+	defer func() { out.Close() }()
 
-	t, err := tail.TailFile(filename, config)
+	t, err :=  sdjournal.NewJournalReader(sdjournal.JournalReaderConfig{
+		Since: time.Duration(-1) * time.Second,
+		Matches: []sdjournal.Match{
+			{
+				Field: sdjournal.SD_JOURNAL_FIELD_SYSLOG_IDENTIFIER,
+				Value: "sshd",
+			},
+		},
+	})
+
 	if err != nil {
-		fmt.Println(err)
-		return
+		log.Fatalf("Error opening journal: %s", err)
 	}
 
-	for line := range t.Lines {
-		out <- line.Text
-	}
+	defer t.Close()
 
-	err = t.Wait()
-	if err != nil {
-		fmt.Println(err)
+	done := make(chan time.Time)
+
+	if err = t.Follow(done, out); err != sdjournal.ErrExpired {
+		log.Fatalf("Error during follow: %s", err)
 	}
 }
