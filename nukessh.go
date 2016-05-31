@@ -37,7 +37,9 @@ func init() {
 		"bugzilla",
 		"cacti",
 		"cactiuser",
+		"cron",
 		"cthulhu",
+		"db2inst",
 		"deploy",
 		"dff",
 		"eggdrop",
@@ -51,6 +53,7 @@ func init() {
 		"hastur",
 		"itc",
 		"john",
+		"letmein",
 		"log",
 		"mail",
 		"marine",
@@ -62,6 +65,7 @@ func init() {
 		"news",
 		"nobody",
 		"oracle",
+		"pi",
 		"postfix",
 		"postgres",
 		"r00t",
@@ -77,6 +81,7 @@ func init() {
 		"tomcat",
 		"user",
 		"viridian",
+		"vyatta",
 		"webmaster",
 		"www",
 		"zabbix",
@@ -92,13 +97,13 @@ func main() {
         os.Exit(1)
     }
 
-	config := tail.Config{Follow: true, ReOpen: true, Poll: true,
-		Logger: tail.DiscardingLogger,
+	tailconfig := tail.Config{Follow: true, ReOpen: true, Poll: true,
+//		Logger: tail.DiscardingLogger,
 		Location: &tail.SeekInfo{0, os.SEEK_END}}
 
 	line := make(chan string, 5)
 
-	go tailFile(os.Args[1], config, line)
+	go tailFile(os.Args[1], tailconfig, line)
 	lookForLine(line)
 
 }
