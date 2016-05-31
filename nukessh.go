@@ -3,112 +3,15 @@ package main
 import (
 	"fmt"
 	"log"
-	"regexp"
 	"time"
 
 	"github.com/coreos/go-systemd/sdjournal"
 )
 
-type SshLogin struct {
-	IPaddr string
-	User string
-}
-
-type LineInfo chan string
-
-func (w LineInfo) Write(p []byte) (int, error) {
-	if len(p) < 1 {
-		return 0, nil
-	}
-
-	w <- string(p)
-	return len(p), nil
-}
-
-func (w LineInfo) Close() error {
-	close(w)
-	return nil
-}
-
 const (
 	expirecycle = time.Hour
-	decay = 10
+	decay       = 10
 )
-
-var (
-	rx *regexp.Regexp
-	badusers = make(map[string]bool)
-)
-
-func init() {
-	// This is the /var/log/secure version of the regexp
-	// rx = regexp.MustCompile(`sshd\[\d+\]:\s+Failed password for (?:invalid\s+user\s+)?(.*) from (\d+\.\d+\.\d+\.\d+)\s+port`)
-
-	// This is the systemd version of the regexp
-	rx = regexp.MustCompile(`MESSAGE=Failed password for (?:invalid\s+user\s+)?(.*) from (\d+\.\d+\.\d+\.\d+)\s+port`)
-
-	for _, u := range []string{
-		"admin",
-		"administrator",
-		"anaconda",
-		"apache",
-		"bin",
-		"bugzilla",
-		"cacti",
-		"cactiuser",
-		"cron",
-		"cthulhu",
-		"db2inst",
-		"deploy",
-		"dff",
-		"eggdrop",
-		"fskjl32l32",
-		"ftp",
-		"ftpuser",
-		"git",
-		"gopher",
-		"guest",
-		"hadoop",
-		"hastur",
-		"itc",
-		"john",
-		"letmein",
-		"log",
-		"mail",
-		"marine",
-		"mcgrath",
-		"munin",
-		"mysql",
-		"nagios",
-		"navy",
-		"news",
-		"nobody",
-		"oracle",
-		"pi",
-		"postfix",
-		"postgres",
-		"r00t",
-		"samba",
-		"sfdjlkfkjd",
-		"squid",
-		"staff",
-		"support",
-		"system",
-		"teamspeak",
-		"test",
-		"testuser",
-		"tomcat",
-		"user",
-		"viridian",
-		"vyatta",
-		"webmaster",
-		"www",
-		"zabbix",
-		"zhangyan",
-	} {
-		badusers[u] = true
-	}
-}
 
 func main() {
 	var line LineInfo
@@ -117,19 +20,6 @@ func main() {
 	go watch_sdjournal(&line)
 	lookForLine(line)
 
-}
-
-func LineMatch(line string) (login SshLogin, found bool) {
-	if m := rx.FindAllStringSubmatch(line, -1); m != nil {
-		found = true
-		login.IPaddr = m[0][2]
-		login.User = m[0][1]
-		return login, true
-	} else {
-		found = false
-	}
-
-	return login, found
 }
 
 func lookForLine(line <-chan string) {
@@ -172,7 +62,7 @@ func lookForLine(line <-chan string) {
 func watch_sdjournal(out *LineInfo) {
 	defer func() { out.Close() }()
 
-	t, err :=  sdjournal.NewJournalReader(sdjournal.JournalReaderConfig{
+	t, err := sdjournal.NewJournalReader(sdjournal.JournalReaderConfig{
 		Since: time.Duration(-1) * time.Second,
 		Matches: []sdjournal.Match{
 			{
