@@ -11,6 +11,8 @@ import (
 const (
 	expirecycle = time.Hour
 	decay       = 10
+	threshold   = 15
+	threshold_root = 3
 )
 
 func main() {
@@ -46,14 +48,22 @@ func lookForLine(line <-chan string) {
 				fmt.Printf("ip: %v user: %v\n", l.IPaddr, l.User)
 
 				if badusers[l.User] {
-					fmt.Println("   is a baduser, instablock")
+					fmt.Println("--- is a baduser, instablock")
 				}
 
 				if l.User == "root" {
-					r["root"]++
+					r[l.IPaddr]++
+					if r[l.IPaddr] > threshold_root {
+						fmt.Printf("--- too many roots from %v\n", l.IPaddr)
+						// block
+					}
 				}
 
 				u[l.IPaddr]++
+				if u[l.IPaddr] > threshold {
+					fmt.Printf("--- too many attempts from %v\n", l.IPaddr)
+					// block
+				}
 			}
 		}
 	}
