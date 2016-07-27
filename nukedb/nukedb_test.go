@@ -57,7 +57,7 @@ func TestCreate(t *testing.T) {
 		t.Errorf("GetInfo after update2 failed %v %v\n", err, r)
 	}
 
-	ips, e3 := n.GetExpires(1000000)
+	ips, e3 := n.GetExpires(time.Unix(1000000,0))
 	if e3 != nil || len(ips) != 2 {
 		t.Errorf("GetExpires failed %v %v\n", ips, e3)
 	}

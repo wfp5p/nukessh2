@@ -142,10 +142,10 @@ func (n NukeDB) ClearExpire(ip string) error {
 }
 
 // returns slice of ips where expire > 0 and <= expire param
-func (n NukeDB) GetExpires(expire int64) ([]string, error) {
+func (n NukeDB) GetExpires(expire time.Time) ([]string, error) {
 	var r []string
 
-	rows, err := n.db.Query(`select ip from nukessh where expire > 0 and expire <= ?`, expire)
+	rows, err := n.db.Query(`select ip from nukessh where expire > 0 and expire <= ?`, expire.Unix())
 
 	if err != nil {
 		return nil, err
@@ -170,10 +170,10 @@ func (n NukeDB) GetExpires(expire int64) ([]string, error) {
 }
 
 // returns slice of ips where expire != 0 and expire >  expire param
-func (n NukeDB) GetActive(expire int64) ([]string, error) {
+func (n NukeDB) GetActive(expire time.Time) ([]string, error) {
 	var r []string
 
-	rows, err := n.db.Query(`select ip from nukessh where expire != 0 and expire > ?`, expire)
+	rows, err := n.db.Query(`select ip from nukessh where expire != 0 and expire > ?`, expire.Unix())
 
 	if err != nil {
 		return nil, err
