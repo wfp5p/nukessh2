@@ -65,6 +65,10 @@ func (bh BlockHost) BlockDB() error {
 		return err
 	}
 
-	log.Printf("BlockDB wants to block %v\n", ips)
+	for _, ip := range ips {
+		if err := bh.ips.AddUnique(bh.setname, ip); err != nil {
+			log.Fatal(err)
+		}
+	}
 	return nil
 }
