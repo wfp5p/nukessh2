@@ -5,26 +5,37 @@ import (
 	"log"
 	"time"
 
+	"nukessh/blockhost"
+
 	"github.com/coreos/go-systemd/sdjournal"
 )
 
 const (
 	expirecycle = time.Hour
+	blocktime = 24 * time.Hour
 	decay       = 10
 	threshold   = 15
 	threshold_root = 3
+	setname = "nukessh4"
+	dbfile = "/tmp/nukessh2.db"
 )
 
 func main() {
+	bh, err := blockhost.New(dbfile, setname, blocktime)
+	if err != nil {
+		log.Fatalf("blockhost new failed: %s", err)
+	}
+	bh.BlockActives()
+
 	var line LineInfo
 	line = make(chan string, 5)
 
 	go watch_sdjournal(&line)
-	lookForLine(line)
+	lookForLine(line, bh)
 
 }
 
-func lookForLine(line <-chan string) {
+func lookForLine(line <-chan string, bh *blockhost.BlockHost) {
 	ticker := time.NewTicker(expirecycle)
 	u := make(map[string]int)
 	r := make(map[string]int)
@@ -43,16 +54,23 @@ func lookForLine(line <-chan string) {
 			}
 			// expire all the roots
 			r = make(map[string]int)
+
+			// do the expire run for the db
+			bh.ExpireDB()
+
 		case s := <-line:
 			if l, ok := LineMatch(s); ok {
-				fmt.Printf("ip: %v user: %v\n", l.IPaddr, l.User)
+				fmt.Printf("ip: %v user: %v count: %v\n", l.IPaddr, l.User, u[l.IPaddr])
 
 				if badusers[l.User] {
 					fmt.Println("--- is a baduser, instablock")
+					bh.BlockHost(l.IPaddr)
+					break;
 				}
 
 				if l.User == "root" {
 					r[l.IPaddr]++
+					fmt.Printf("   roots from %v: %v\n", l.IPaddr, r[l.IPaddr])
 					if r[l.IPaddr] > threshold_root {
 						fmt.Printf("--- too many roots from %v\n", l.IPaddr)
 						// block
