@@ -66,14 +66,14 @@ func New(filename string) (*NukeDB, error) {
 	return &ndb, nil
 }
 
-func (n NukeDB) Insert(ip string, expire int64, blocks int) error {
+func (n NukeDB) Insert(ip string, expire time.Time, blocks int) error {
 	stmt, err := n.db.Prepare(`insert or replace into nukessh(ip, expire, blocks) values(?, ?, ?)`)
 	if err != nil {
 		return err
 	}
 	defer stmt.Close()
 
-	_, err = stmt.Exec(ip, expire, blocks)
+	_, err = stmt.Exec(ip, expire.Unix(), blocks)
 	if err != nil {
 		return err
 	}
@@ -82,22 +82,20 @@ func (n NukeDB) Insert(ip string, expire int64, blocks int) error {
 }
 
 // insert the expire, if the row is already there, increment the block
-func (n NukeDB) InsertExpire(ip string, expire int64) error {
+func (n NukeDB) InsertExpire(ip string, expire time.Time) error {
 	// get row
-	r, err := n.GetInfo(ip)
-
-	if err == sql.ErrNoRows {
-		r.Blocks = 1
-	} else if err == nil {
-		r.Blocks++
+	var blocks int
+	if r, err := n.GetInfo(ip); err != nil {
+		if err == sql.ErrNoRows {
+			blocks = 1
+		} else {
+			return err
+		}
 	} else {
-		return err
+		blocks = r.Blocks + 1
 	}
 
-	r.IPaddr = ip
-	r.Expire = expire
-
-	return n.Insert(r.IPaddr, r.Expire, r.Blocks)
+	return n.Insert(ip, expire, blocks)
 }
 
 // given an ip, return it's record
