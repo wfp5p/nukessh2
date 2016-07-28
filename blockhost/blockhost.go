@@ -129,7 +129,7 @@ func (bh *BlockHost) BlockHost(ip string) error {
 	}
 
 	newexpire := time.Now().Add(bh.blocktime * (1 << uint(blocks)))
-	log.Printf("blocking %v until %v\n", newexpire)
+	log.Printf("blocking %v until %v\n", ip, newexpire)
 	blocks++
 
 	if err := bh.nukeDB.Insert(ip, newexpire, blocks); err != nil {
