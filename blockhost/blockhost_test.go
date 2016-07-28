@@ -4,6 +4,7 @@ import (
 	"testing"
 	"os"
 	"io/ioutil"
+	"time"
 )
 
 func TestCreate(t *testing.T) {
@@ -16,7 +17,7 @@ func TestCreate(t *testing.T) {
 	}
 	defer os.RemoveAll(tempDir)
 
-	bh, err := New(tempDir + "/bh.db", "bh")
+	bh, err := New(tempDir + "/bh.db", "bh", 24 * time.Hour)
 	if err != nil {
 		t.Error(err)
 	}
@@ -25,13 +26,13 @@ func TestCreate(t *testing.T) {
 }
 
 func TestBlockDB(t *testing.T) {
-	bh, err := New("/tmp/bh.db", "bh")
+	bh, err := New("/tmp/bh.db", "bh", 24 * time.Hour)
 	if err != nil {
 		t.Error(err)
 	}
 	defer bh.Close()
 
-	err = bh.BlockDB()
+	err = bh.BlockActives()
 	if err != nil {
 		t.Error(err)
 	}
