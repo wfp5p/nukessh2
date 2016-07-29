@@ -1,12 +1,10 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"time"
 
 	"nukessh/blockhost"
-
 	"github.com/coreos/go-systemd/sdjournal"
 )
 
@@ -43,15 +41,15 @@ func lookForLine(line <-chan string, bh *blockhost.BlockHost) {
 	for {
 		select {
 		case <-ticker.C:
-			fmt.Println("time for an expire run")
+			log.Printf("before expire: %v\n", u)
 			for k, v := range u {
-				fmt.Printf("* ip: %v %v\n", k, v)
 				if v <= decay {
 					delete(u, k)
 					continue
 				}
 				u[k] -= decay
 			}
+			log.Printf("after expire: %v\n", u)
 			// expire all the roots
 			r = make(map[string]int)
 
@@ -60,10 +58,10 @@ func lookForLine(line <-chan string, bh *blockhost.BlockHost) {
 
 		case s := <-line:
 			if l, ok := LineMatch(s); ok {
-				fmt.Printf("ip: %v user: %v count: %v\n", l.IPaddr, l.User, u[l.IPaddr])
+//				fmt.Printf("ip: %v user: %v count: %v\n", l.IPaddr, l.User, u[l.IPaddr])
 
 				if badusers[l.User] {
-					fmt.Println("--- is a baduser, instablock")
+					log.Printf("%v is a baduser, instablock\n",l.User)
 					bh.BlockHost(l.IPaddr)
 					u[l.IPaddr] = 0
 					break;
@@ -71,9 +69,9 @@ func lookForLine(line <-chan string, bh *blockhost.BlockHost) {
 
 				if l.User == "root" {
 					r[l.IPaddr]++
-					fmt.Printf("   roots from %v: %v\n", l.IPaddr, r[l.IPaddr])
+//					fmt.Printf("   roots from %v: %v\n", l.IPaddr, r[l.IPaddr])
 					if r[l.IPaddr] > threshold_root {
-						fmt.Printf("--- too many roots from %v\n", l.IPaddr)
+						log.Printf("%v too many root attempts %v\n", l.IPaddr)
 						bh.BlockHost(l.IPaddr)
 						r[l.IPaddr] = 0
 						break
@@ -82,7 +80,7 @@ func lookForLine(line <-chan string, bh *blockhost.BlockHost) {
 
 				u[l.IPaddr]++
 				if u[l.IPaddr] > threshold {
-					fmt.Printf("--- too many attempts from %v\n", l.IPaddr)
+					log.Printf("%v too many attempts: %v\n", l.IPaddr,u[l.IPaddr])
 					bh.BlockHost(l.IPaddr)
 					u[l.IPaddr] = 0
 				}

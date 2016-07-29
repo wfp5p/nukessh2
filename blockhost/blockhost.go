@@ -77,6 +77,7 @@ func (bh *BlockHost) BlockActives() error {
 	}
 
 	for _, ip := range ips {
+		log.Printf("BlockActives blocking %v\n", ip)
 		if err := bh.addtoset(ip); err != nil {
 			log.Fatal(err)
 		}
@@ -103,6 +104,9 @@ func (bh *BlockHost) ExpireDB() error {
 	}
 
 	for _, ip := range ips {
+
+		log.Printf("ExpireDB unblocking expired ip %v\n", ip)
+
 		if err := bh.delfromset(ip); err != nil {
 			log.Fatal(err)
 		}
