@@ -62,24 +62,21 @@ func lookForLine(line <-chan string, bh *blockhost.BlockHost) {
 
 				if badusers[l.User] {
 					log.Printf("%v is a baduser, instablock\n",l.User)
-					bh.BlockHost(l.IPaddr)
-					u[l.IPaddr] = 0
-					break;
+					u[l.IPaddr] += threshold
 				}
 
 				if l.User == "root" {
 					r[l.IPaddr]++
 //					fmt.Printf("   roots from %v: %v\n", l.IPaddr, r[l.IPaddr])
-					if r[l.IPaddr] > threshold_root {
+					if r[l.IPaddr] >= threshold_root {
 						log.Printf("%v too many root attempts %v\n", l.IPaddr)
-						bh.BlockHost(l.IPaddr)
-						r[l.IPaddr] = 0
-						break
+						u[l.IPaddr] += threshold
 					}
 				}
 
 				u[l.IPaddr]++
-				if u[l.IPaddr] > threshold {
+
+				if u[l.IPaddr] >= threshold {
 					log.Printf("%v too many attempts: %v\n", l.IPaddr,u[l.IPaddr])
 					bh.BlockHost(l.IPaddr)
 					u[l.IPaddr] = 0
