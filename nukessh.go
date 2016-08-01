@@ -3,6 +3,9 @@ package main
 import (
 	"log"
 	"time"
+	"os"
+	"os/signal"
+	"syscall"
 
 	"nukessh/blockhost"
 	"github.com/coreos/go-systemd/sdjournal"
@@ -37,11 +40,16 @@ func lookForLine(line <-chan string, bh *blockhost.BlockHost) {
 	ticker := time.NewTicker(expirecycle)
 	u := make(map[string]int)
 	r := make(map[string]int)
+	sig := make(chan os.Signal, 1)
+	signal.Notify(sig, syscall.SIGUSR2)
 
 	for {
 		select {
+		case s := <-sig:
+			if s == syscall.SIGUSR2 {
+				log.Printf("ip map: %v\n", u)
+			}
 		case <-ticker.C:
-//			log.Printf("before expire: %v\n", u)
 			for k, v := range u {
 				if v <= decay {
 					delete(u, k)
@@ -49,7 +57,6 @@ func lookForLine(line <-chan string, bh *blockhost.BlockHost) {
 				}
 				u[k] -= decay
 			}
-//			log.Printf("after expire: %v\n", u)
 
 			// expire all the roots
 			r = make(map[string]int)
