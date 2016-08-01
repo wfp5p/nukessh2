@@ -41,7 +41,7 @@ func lookForLine(line <-chan string, bh *blockhost.BlockHost) {
 	for {
 		select {
 		case <-ticker.C:
-			log.Printf("before expire: %v\n", u)
+//			log.Printf("before expire: %v\n", u)
 			for k, v := range u {
 				if v <= decay {
 					delete(u, k)
@@ -49,7 +49,8 @@ func lookForLine(line <-chan string, bh *blockhost.BlockHost) {
 				}
 				u[k] -= decay
 			}
-			log.Printf("after expire: %v\n", u)
+//			log.Printf("after expire: %v\n", u)
+
 			// expire all the roots
 			r = make(map[string]int)
 
@@ -69,7 +70,7 @@ func lookForLine(line <-chan string, bh *blockhost.BlockHost) {
 					r[l.IPaddr]++
 //					fmt.Printf("   roots from %v: %v\n", l.IPaddr, r[l.IPaddr])
 					if r[l.IPaddr] >= threshold_root {
-						log.Printf("%v too many root attempts %v\n", l.IPaddr)
+						log.Printf("%v too many root attempts\n", l.IPaddr)
 						u[l.IPaddr] += threshold
 					}
 				}
@@ -77,7 +78,7 @@ func lookForLine(line <-chan string, bh *blockhost.BlockHost) {
 				u[l.IPaddr]++
 
 				if u[l.IPaddr] >= threshold {
-					log.Printf("%v too many attempts: %v\n", l.IPaddr,u[l.IPaddr])
+					log.Printf("%v blocked\n", l.IPaddr)
 					bh.BlockHost(l.IPaddr)
 					u[l.IPaddr] = 0
 				}

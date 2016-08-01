@@ -13,6 +13,10 @@ import (
 	"log"
 )
 
+const (
+        MYTIME = "2006-01-02 15:04:05 MST"
+)
+
 type BlockHost struct {
 	nukeDB *nukedb.NukeDB
 	ips *ipset.IPSet
@@ -133,7 +137,7 @@ func (bh *BlockHost) BlockHost(ip string) error {
 	}
 
 	newexpire := time.Now().Add(bh.blocktime * (1 << uint(blocks)))
-	log.Printf("blocking %v until %v\n", ip, newexpire)
+	log.Printf("blocking %v until %v\n", ip, newexpire.Format(MYTIME))
 	blocks++
 
 	if err := bh.nukeDB.Insert(ip, newexpire, blocks); err != nil {
