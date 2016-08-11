@@ -56,6 +56,7 @@ func init() {
 		"test",
 		"testuser",
 		"tomcat",
+		"ubnt",
 		"user",
 		"viridian",
 		"vyatta",
