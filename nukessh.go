@@ -14,11 +14,11 @@ import (
 const (
 	expirecycle = time.Hour
 	blocktime = 24 * time.Hour
-	decay       = 10
-	threshold   = 15
+	decay       = 5
+	threshold   = 10
 	threshold_root = 3
 	setname = "nukessh4"
-	dbfile = "/tmp/nukessh2.db"
+	dbfile = "/var/cache/nukessh/nukedb"
 )
 
 func main() {
