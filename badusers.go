@@ -1,7 +1,7 @@
 package main
 
 var (
-	badusers = make(map[string]bool)
+	badusers = make(map[string]bool, 100)
 )
 
 func init() {
