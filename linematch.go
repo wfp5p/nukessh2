@@ -23,13 +23,10 @@ func init() {
 
 func LineMatch(line string) (login SshLogin, found bool) {
 	if m := rx.FindAllStringSubmatch(line, -1); m != nil {
-		found = true
 		login.IPaddr = m[0][2]
 		login.User = m[0][1]
 		return login, true
-	} else {
-		found = false
 	}
 
-	return login, found
+	return login, false
 }
