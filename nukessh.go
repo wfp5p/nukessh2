@@ -2,23 +2,23 @@ package main
 
 import (
 	"log"
-	"time"
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 
-	"nukessh/blockhost"
 	"github.com/coreos/go-systemd/sdjournal"
+	"nukessh/blockhost"
 )
 
 const (
-	expirecycle = time.Hour
-	blocktime = 24 * time.Hour
-	decay       = 5
-	threshold   = 10
+	expirecycle    = time.Hour
+	blocktime      = 24 * time.Hour
+	decay          = 5
+	threshold      = 10
 	threshold_root = 3
-	setname = "nukessh4"
-	dbfile = "/var/cache/nukessh/nukedb"
+	setname        = "nukessh4"
+	dbfile         = "/var/cache/nukessh/nukedb"
 )
 
 func main() {
@@ -66,16 +66,16 @@ func lookForLine(line <-chan string, bh *blockhost.BlockHost) {
 
 		case s := <-line:
 			if l, ok := LineMatch(s); ok {
-//				fmt.Printf("ip: %v user: %v count: %v\n", l.IPaddr, l.User, u[l.IPaddr])
+				//				fmt.Printf("ip: %v user: %v count: %v\n", l.IPaddr, l.User, u[l.IPaddr])
 
 				if badusers[l.User] {
-					log.Printf("%v is a baduser, instablock\n",l.User)
+					log.Printf("%v is a baduser, instablock\n", l.User)
 					u[l.IPaddr] += threshold
 				}
 
 				if l.User == "root" {
 					r[l.IPaddr]++
-//					fmt.Printf("   roots from %v: %v\n", l.IPaddr, r[l.IPaddr])
+					//					fmt.Printf("   roots from %v: %v\n", l.IPaddr, r[l.IPaddr])
 					if r[l.IPaddr] >= threshold_root {
 						log.Printf("%v too many root attempts\n", l.IPaddr)
 						u[l.IPaddr] += threshold

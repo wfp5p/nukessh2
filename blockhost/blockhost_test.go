@@ -1,9 +1,9 @@
 package blockhost
 
 import (
-	"testing"
-	"os"
 	"io/ioutil"
+	"os"
+	"testing"
 	"time"
 )
 
@@ -17,7 +17,7 @@ func TestCreate(t *testing.T) {
 	}
 	defer os.RemoveAll(tempDir)
 
-	bh, err := New(tempDir + "/bh.db", "bh", 24 * time.Hour)
+	bh, err := New(tempDir+"/bh.db", "bh", 24*time.Hour)
 	if err != nil {
 		t.Error(err)
 	}
@@ -26,7 +26,7 @@ func TestCreate(t *testing.T) {
 }
 
 func TestBlockDB(t *testing.T) {
-	bh, err := New("/tmp/bh.db", "bh", 24 * time.Hour)
+	bh, err := New("/tmp/bh.db", "bh", 24*time.Hour)
 	if err != nil {
 		t.Error(err)
 	}

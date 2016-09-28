@@ -1,21 +1,21 @@
 package nukedb
 
 import (
-    "database/sql"
-	"time"
+	"database/sql"
 	"log"
+	"time"
 
-    _ "github.com/mattn/go-sqlite3" // shut up golint
+	_ "github.com/mattn/go-sqlite3" // shut up golint
 )
 
 type NukeDB struct {
- 	db *sql.DB
+	db *sql.DB
 }
 
 type NukeRecord struct {
-	IPaddr string
-	Expire int64
-	Blocks int
+	IPaddr     string
+	Expire     int64
+	Blocks     int
 	LastUpdate time.Time
 }
 
@@ -54,14 +54,13 @@ func New(filename string) (*NukeDB, error) {
 		return nil, err
 	}
 
-    _, err = db.Exec(`create trigger if not exists mktime_update after update on nukessh begin
+	_, err = db.Exec(`create trigger if not exists mktime_update after update on nukessh begin
                       update nukessh set lastupdate=strftime('%s','now') where
                       ip = new.ip;end;`)
 
 	if err != nil {
 		return nil, err
 	}
-
 
 	return &ndb, nil
 }
@@ -102,7 +101,7 @@ func (n NukeDB) InsertExpire(ip string, expire time.Time) error {
 func (n NukeDB) GetInfo(ip string) (NukeRecord, error) {
 	var r NukeRecord
 	err := n.db.QueryRow(`select expire, blocks, lastupdate from
-            nukessh where ip=?`,ip).Scan(&r.Expire, &r.Blocks, &r.LastUpdate)
+            nukessh where ip=?`, ip).Scan(&r.Expire, &r.Blocks, &r.LastUpdate)
 	if err != nil {
 		return r, err
 	}
@@ -161,7 +160,7 @@ func (n NukeDB) GetExpires(expire time.Time) ([]string, error) {
 
 	err = rows.Err()
 	if err != nil {
-			log.Fatal(err) // probably shouldn't be a fatal
+		log.Fatal(err) // probably shouldn't be a fatal
 	}
 
 	return r, nil
@@ -189,7 +188,7 @@ func (n NukeDB) GetActive(expire time.Time) ([]string, error) {
 
 	err = rows.Err()
 	if err != nil {
-			log.Fatal(err) // probably shouldn't be a fatal
+		log.Fatal(err) // probably shouldn't be a fatal
 	}
 
 	return r, nil

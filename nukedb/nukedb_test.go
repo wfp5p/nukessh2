@@ -1,11 +1,11 @@
 package nukedb
 
 import (
-	"testing"
+	"database/sql"
 	"io/ioutil"
 	"os"
+	"testing"
 	"time"
-	"database/sql"
 )
 
 func TestCreate(t *testing.T) {
@@ -60,7 +60,7 @@ func TestCreate(t *testing.T) {
 		t.Errorf("GetInfo after update2 failed %v %v\n", err, r)
 	}
 
-	ips, e3 := n.GetExpires(someDate.AddDate(0,0,1))
+	ips, e3 := n.GetExpires(someDate.AddDate(0, 0, 1))
 	if e3 != nil || len(ips) != 2 {
 		t.Errorf("GetExpires failed %v %v\n", ips, e3)
 	}
@@ -83,4 +83,3 @@ func TestCreate(t *testing.T) {
 		t.Fatal(err)
 	}
 }
-

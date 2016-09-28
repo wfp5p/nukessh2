@@ -1,12 +1,12 @@
 package blockhost
 
 import (
+	"database/sql" // just to get ErrNoRows
 	"fmt"
-	"os"
 	"nukessh/nukedb"
+	"os"
 	"strings"
 	"time"
-	"database/sql" // just to get ErrNoRows
 
 	"github.com/gmccue/go-ipset"
 
@@ -14,13 +14,13 @@ import (
 )
 
 const (
-        mytime = "2006-01-02 15:04:05 MST"
+	mytime = "2006-01-02 15:04:05 MST"
 )
 
 type BlockHost struct {
-	nukeDB *nukedb.NukeDB
-	ips *ipset.IPSet
-	setname string
+	nukeDB    *nukedb.NukeDB
+	ips       *ipset.IPSet
+	setname   string
 	blocktime time.Duration
 }
 
@@ -43,7 +43,7 @@ func New(dbname string, setname string, d time.Duration) (*BlockHost, error) {
 		if strings.Contains(err.Error(), "set with the same name already exists") {
 			bh.ips.Flush(setname)
 		} else {
-			return nil, fmt.Errorf("blockhost: error %s when trying to create ipset",err)
+			return nil, fmt.Errorf("blockhost: error %s when trying to create ipset", err)
 		}
 	}
 
@@ -127,7 +127,7 @@ func (bh *BlockHost) BlockHost(ip string) error {
 	}
 
 	var blocks int
-	if r, err := bh.nukeDB.GetInfo(ip); err != nil && err != sql.ErrNoRows  {
+	if r, err := bh.nukeDB.GetInfo(ip); err != nil && err != sql.ErrNoRows {
 		log.Fatal(err)
 	} else {
 		blocks = r.Blocks
@@ -147,4 +147,3 @@ func (bh *BlockHost) BlockHost(ip string) error {
 
 	return nil
 }
-
