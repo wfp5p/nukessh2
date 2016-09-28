@@ -5,7 +5,7 @@ import (
 	"time"
 	"log"
 
-    _ "github.com/mattn/go-sqlite3"
+    _ "github.com/mattn/go-sqlite3" // shut up golint
 )
 
 type NukeDB struct {
