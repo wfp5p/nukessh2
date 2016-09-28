@@ -123,7 +123,7 @@ func (n NukeDB) Purge(purgetime time.Time) error {
 		return err
 	}
 
-	_, err = n.db.Exec(`vacuum`)
+	_, _ = n.db.Exec(`vacuum`)
 	return nil
 }
 
