@@ -33,14 +33,13 @@ func New(dbname string, setname string, d time.Duration) (*BlockHost, error) {
 	var bh BlockHost
 	bh.setname = setname
 	bh.blocktime = d
+	var err error
 
-	if s, err := ipset.New(); err != nil {
+	if bh.ips, err = ipset.New(); err != nil {
 		return nil, err
-	} else {
-		bh.ips = s
 	}
 
-	if err := bh.ips.Create(setname, "hash:ip"); err != nil {
+	if err = bh.ips.Create(setname, "hash:ip"); err != nil {
 		if strings.Contains(err.Error(), "set with the same name already exists") {
 			bh.ips.Flush(setname)
 		} else {
@@ -48,10 +47,8 @@ func New(dbname string, setname string, d time.Duration) (*BlockHost, error) {
 		}
 	}
 
-	if ndb, err := nukedb.New(dbname); err != nil {
+	if bh.nukeDB, err = nukedb.New(dbname); err != nil {
 		return nil, err
-	} else {
-		bh.nukeDB = ndb
 	}
 
 	return &bh, nil
@@ -93,10 +90,10 @@ func (bh *BlockHost) delfromset(ip string) error {
 	if err := bh.ips.Delete(bh.setname, ip); err != nil {
 		if strings.Contains(err.Error(), "it's not added") {
 			return nil
-		} else {
-			return err
 		}
+		return err
 	}
+
 	return nil
 }
 
