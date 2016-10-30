@@ -2,6 +2,7 @@ package main
 
 import (
 	"regexp"
+	"strings"
 )
 
 type SshLogin struct {
@@ -24,7 +25,7 @@ func init() {
 func LineMatch(line string) (login SshLogin, found bool) {
 	if m := rx.FindAllStringSubmatch(line, -1); m != nil {
 		login.IPaddr = m[0][2]
-		login.User = m[0][1]
+		login.User = strings.ToLower(m[0][1])
 		return login, true
 	}
 
